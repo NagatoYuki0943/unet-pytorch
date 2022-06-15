@@ -1,6 +1,11 @@
+"""
+unet主干特征提取部分
+就是将vgg16的features部分按照maxp_pool分层
+将分层之前获取的特征作为提取的内容,一共提取5次,下面forward中就是
+"""
+
 import torch.nn as nn
 from torch.hub import load_state_dict_from_url
-
 
 class VGG(nn.Module):
     def __init__(self, features, num_classes=1000):
@@ -19,15 +24,17 @@ class VGG(nn.Module):
         self._initialize_weights()
 
     def forward(self, x):
+        # 不进行分类,只需要特征提取
         # x = self.features(x)
         # x = self.avgpool(x)
         # x = torch.flatten(x, 1)
         # x = self.classifier(x)
-        feat1 = self.features[  :4 ](x)
-        feat2 = self.features[4 :9 ](feat1)
-        feat3 = self.features[9 :16](feat2)
-        feat4 = self.features[16:23](feat3)
-        feat5 = self.features[23:-1](feat4)
+
+        feat1 = self.features[  :4 ](x)     # [512,512, 64] 0~3 池化前获取特征,下面每次都是池化前提取特征
+        feat2 = self.features[4 :9 ](feat1) # [256,256,128]
+        feat3 = self.features[9 :16](feat2) # [128,128,256]
+        feat4 = self.features[16:23](feat3) # [ 64, 64,512]
+        feat5 = self.features[23:-1](feat4) # [ 32, 32,512] 不要最后的max_pool
         return [feat1, feat2, feat3, feat4, feat5]
 
     def _initialize_weights(self):
@@ -57,9 +64,10 @@ def make_layers(cfg, batch_norm=False, in_channels = 3):
                 layers += [conv2d, nn.ReLU(inplace=True)]
             in_channels = v
     return nn.Sequential(*layers)
-# 512,512,3 -> 512,512,64 -> 256,256,64 -> 256,256,128 -> 128,128,128 -> 128,128,256 -> 64,64,256
-# 64,64,512 -> 32,32,512 -> 32,32,512
+
+# 512,512,3 -> 512,512,64 -> 256,256,128 -> 128,128,256 -> 64,64,512 -> 32,32,512
 cfgs = {
+    # 数字是out_channel,最后的池化再unet中没有用到
     'D': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M']
 }
 
@@ -69,7 +77,7 @@ def VGG16(pretrained, in_channels = 3, **kwargs):
     if pretrained:
         state_dict = load_state_dict_from_url("https://download.pytorch.org/models/vgg16-397923af.pth", model_dir="./model_data")
         model.load_state_dict(state_dict)
-    
+
     del model.avgpool
     del model.classifier
     return model

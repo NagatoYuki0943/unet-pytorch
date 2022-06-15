@@ -13,7 +13,7 @@ def cvtColor(image):
         return image 
 
 #---------------------------------------------------#
-#   对输入图像进行resize
+#   对输入图像进行resize,变为正方形,周围添加灰条
 #---------------------------------------------------#
 def resize_image(image, size):
     iw, ih  = image.size
@@ -28,7 +28,7 @@ def resize_image(image, size):
     new_image.paste(image, ((w-nw)//2, (h-nh)//2))
 
     return new_image, nw, nh
-    
+
 #---------------------------------------------------#
 #   获得学习率
 #---------------------------------------------------#

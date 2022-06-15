@@ -1,3 +1,7 @@
+"""
+训练医学数据集
+"""
+
 import os
 import datetime
 
@@ -18,7 +22,7 @@ from utils.utils_fit import fit_one_epoch_no_val
 '''
 训练自己的语义分割模型一定需要注意以下几点：
 1、该数据集是我根据网上找到的医药数据集特殊建立的训练文件，只是一个例子，用于展示数据集不是voc格式时要如何进行训练。
-   
+
    不可以计算miou等性能指标。只用于观看医药数据集的训练效果。
    不可以计算miou等性能指标。
    不可以计算miou等性能指标。
@@ -29,12 +33,12 @@ from utils.utils_fit import fit_one_epoch_no_val
    b、有标签的医药数据集：
       将文件的标签格式进行转换，标签的每个像素点的值就是这个像素点所属的种类。
       因此数据集的标签需要改成，背景的像素点值为0，目标的像素点值为1。
-      参考：https://github.com/bubbliiiing/segmentation-format-fix
 
 2、损失值的大小用于判断是否收敛，比较重要的是有收敛的趋势，即验证集损失不断下降，如果验证集损失基本上不改变的话，模型基本上就收敛了。
    损失值的具体大小并没有什么意义，大和小只在于损失的计算方式，并不是接近于0才好。如果想要让损失好看点，可以直接到对应的损失函数里面除上10000。
    训练过程中的损失值会保存在logs文件夹下的loss_%Y_%m_%d_%H_%M_%S文件夹中
-   
+   如果格式有误，参考：https://github.com/bubbliiiing/segmentation-format-fix
+
 3、训练好的权值文件保存在logs文件夹中，每个训练世代（Epoch）包含若干训练步长（Step），每个训练步长（Step）进行一次梯度下降。
    如果只是训练了几个Step是不会保存的，Epoch和Step的概念要捋清楚一下。
 '''

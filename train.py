@@ -1,3 +1,8 @@
+"""
+自己的数据集一定要修改 num_classes
+model_path 和 backbone 要一起修改
+"""
+
 import os
 import datetime
 
@@ -26,12 +31,12 @@ from utils.utils_fit import fit_one_epoch
    由于许多同学的数据集是网络上下载的，标签格式并不符合，需要再度处理。一定要注意！标签的每个像素点的值就是这个像素点所属的种类。
    网上常见的数据集总共对输入图片分两类，背景的像素点值为0，目标的像素点值为255。这样的数据集可以正常运行但是预测是没有效果的！
    需要改成，背景的像素点值为0，目标的像素点值为1。
-   如果格式有误，参考：https://github.com/bubbliiiing/segmentation-format-fix
 
 2、损失值的大小用于判断是否收敛，比较重要的是有收敛的趋势，即验证集损失不断下降，如果验证集损失基本上不改变的话，模型基本上就收敛了。
    损失值的具体大小并没有什么意义，大和小只在于损失的计算方式，并不是接近于0才好。如果想要让损失好看点，可以直接到对应的损失函数里面除上10000。
    训练过程中的损失值会保存在logs文件夹下的loss_%Y_%m_%d_%H_%M_%S文件夹中
-   
+   如果格式有误，参考：https://github.com/bubbliiiing/segmentation-format-fix
+
 3、训练好的权值文件保存在logs文件夹中，每个训练世代（Epoch）包含若干训练步长（Step），每个训练步长（Step）进行一次梯度下降。
    如果只是训练了几个Step是不会保存的，Epoch和Step的概念要捋清楚一下。
 '''
@@ -88,13 +93,13 @@ if __name__ == "__main__":
     #
     #   如果训练过程中存在中断训练的操作，可以将model_path设置成logs文件夹下的权值文件，将已经训练了一部分的权值再次载入。
     #   同时修改下方的 冻结阶段 或者 解冻阶段 的参数，来保证模型epoch的连续性。
-    #   
+    #
     #   当model_path = ''的时候不加载整个模型的权值。
     #
     #   此处使用的是整个模型的权重，因此是在train.py进行加载的，pretrain不影响此处的权值加载。
     #   如果想要让模型从主干的预训练权值开始训练，则设置model_path = ''，pretrain = True，此时仅加载主干。
     #   如果想要让模型从0开始训练，则设置model_path = ''，pretrain = Fasle，Freeze_Train = Fasle，此时从0开始训练，且没有冻结主干的过程。
-    #   
+    #
     #   一般来讲，网络从0开始的训练效果会很差，因为权值太过随机，特征提取效果不明显，因此非常、非常、非常不建议大家从0开始训练！
     #   如果一定要从0开始，可以了解imagenet数据集，首先训练分类模型，获得网络的主干部分权值，分类模型的 主干部分 和该模型通用，基于此进行训练。
     #----------------------------------------------------------------------------------------------------------------------------#
@@ -107,9 +112,9 @@ if __name__ == "__main__":
     #----------------------------------------------------------------------------------------------------------------------------#
     #   训练分为两个阶段，分别是冻结阶段和解冻阶段。设置冻结阶段是为了满足机器性能不足的同学的训练需求。
     #   冻结训练需要的显存较小，显卡非常差的情况下，可设置Freeze_Epoch等于UnFreeze_Epoch，此时仅仅进行冻结训练。
-    #   
+    #
     #   在此提供若干参数设置建议，各位训练者根据自己的需求进行灵活调整：
-    #   （一）从整个模型的预训练权重开始训练： 
+    #   （一）从整个模型的预训练权重开始训练：
     #       Adam：
     #           Init_Epoch = 0，Freeze_Epoch = 50，UnFreeze_Epoch = 100，Freeze_Train = True，optimizer_type = 'adam'，Init_lr = 1e-4，weight_decay = 0。（冻结）
     #           Init_Epoch = 0，UnFreeze_Epoch = 100，Freeze_Train = False，optimizer_type = 'adam'，Init_lr = 1e-4，weight_decay = 0。（不冻结）
@@ -307,7 +312,7 @@ if __name__ == "__main__":
         log_dir         = os.path.join(save_dir, "loss_" + str(time_str))
         loss_history    = LossHistory(log_dir, model, input_shape=input_shape)
     else:
-        loss_history    = None
+        loss_history = None
         
     #------------------------------------------------------------------#
     #   torch 1.2不支持amp，建议使用torch 1.7.1及以上正确使用fp16

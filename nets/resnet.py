@@ -1,3 +1,8 @@
+"""
+对resnet的forward进行修改
+返回5个值,每次都是max_pool之前的数据
+"""
+
 import math
 
 import torch.nn as nn
@@ -100,26 +105,26 @@ class Bottleneck(nn.Module):
 class ResNet(nn.Module):
     def __init__(self, block, layers, num_classes=1000):
         #-----------------------------------------------------------#
-        #   假设输入图像为600,600,3
+        #   假设输入图像为512,512,3
         #   当我们使用resnet50的时候
         #-----------------------------------------------------------#
         self.inplanes = 64
         super(ResNet, self).__init__()
-        # 600,600,3 -> 300,300,64
+        # 512,512,3 -> 256,256,64
         self.conv1  = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.bn1    = nn.BatchNorm2d(64)
         self.relu   = nn.ReLU(inplace=True)
-        # 300,300,64 -> 150,150,64
+        # 256,256,64  -> 128,128,64
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=0, ceil_mode=True) # change
-        # 150,150,64 -> 150,150,256
+        # 128,128,64  -> 128,128,256
         self.layer1 = self._make_layer(block, 64, layers[0])
-        # 150,150,256 -> 75,75,512
+        # 128,128,256 -> 64,64,512
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
-        # 75,75,512 -> 38,38,1024
+        # 64,64,512   -> 32,32,1024
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
-        # 38,38,1024 -> 19,19,2048
+        # 32,32,1024  -> 16,16,2048
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
-        
+
         self.avgpool = nn.AvgPool2d(7)
         self.fc = nn.Linear(512 * block.expansion, num_classes)
 
@@ -165,21 +170,21 @@ class ResNet(nn.Module):
 
         x       = self.conv1(x)
         x       = self.bn1(x)
-        feat1   = self.relu(x)
+        feat1   = self.relu(x)          # [256,256, 64]
 
         x       = self.maxpool(feat1)
-        feat2   = self.layer1(x)
+        feat2   = self.layer1(x)        # [128,128,256]
 
-        feat3   = self.layer2(feat2)
-        feat4   = self.layer3(feat3)
-        feat5   = self.layer4(feat4)
+        feat3   = self.layer2(feat2)    # [64, 64, 512]
+        feat4   = self.layer3(feat3)    # [32, 32,1024]
+        feat5   = self.layer4(feat4)    # [16, 16,2048]
         return [feat1, feat2, feat3, feat4, feat5]
 
 def resnet50(pretrained=False, **kwargs):
     model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
     if pretrained:
         model.load_state_dict(model_zoo.load_url('https://s3.amazonaws.com/pytorch/models/resnet50-19c8e357.pth', model_dir='model_data'), strict=False)
-    
+
     del model.avgpool
     del model.fc
     return model

@@ -1,3 +1,9 @@
+"""
+指标评估
+在unet.py中修改为预测时的参数,如模型路径,种类,num_classes
+下面也要修改分类数,分类名称,数据集位置
+"""
+
 import os
 
 from PIL import Image
